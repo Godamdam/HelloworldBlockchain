@@ -18,9 +18,6 @@ public class Account implements Serializable {
     private String publicKey;
     private String address;
 
-    public Account() {
-    }
-
     public Account(String privateKey, String publicKey, String address) {
         this.privateKey = privateKey;
         this.publicKey = publicKey;

@@ -71,7 +71,7 @@ public class BlockChainBrowserServiceImpl implements BlockChainBrowserService {
 
     @Override
     public List<QueryTxoByTransactionOutputIdResponse.TransactionOutputDetailDto> queryTxosByAddress(String address, long from, long size) {
-        List<TransactionOutput> utxoList = getBlockChainCore().queryUtxoListByAddress(address,from,size);
+        List<TransactionOutput> utxoList = getBlockChainCore().queryTxoListByAddress(address,from,size);
         if(utxoList == null){
             return null;
         }

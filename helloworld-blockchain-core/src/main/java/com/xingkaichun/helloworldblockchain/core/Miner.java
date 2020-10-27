@@ -1,9 +1,5 @@
 package com.xingkaichun.helloworldblockchain.core;
 
-import com.xingkaichun.helloworldblockchain.core.model.Block;
-import com.xingkaichun.helloworldblockchain.core.model.transaction.Transaction;
-import com.xingkaichun.helloworldblockchain.crypto.model.Account;
-
 /**
  * 矿工:挖矿、分配挖矿奖励、将挖取的区块放入区块链
  *
@@ -49,16 +45,6 @@ public abstract class Miner {
      */
     public abstract void deactive() ;
     //endregion
-
-
-    //region 挖矿奖励
-    /**
-     * 构建区块的挖矿奖励交易，这里可以实现挖矿奖励的分配。
-     */
-    public abstract Transaction buildMineAwardTransaction(BlockChainDataBase blockChainDataBase, Account minerAccount, Block block) ;
-    //endregion
-
-
 
 
     //region get set

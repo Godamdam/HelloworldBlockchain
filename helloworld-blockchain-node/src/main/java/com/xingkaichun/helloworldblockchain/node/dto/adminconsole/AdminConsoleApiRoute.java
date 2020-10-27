@@ -28,5 +28,5 @@ public class AdminConsoleApiRoute {
 
     public static final String ADD_ACCOUNT = "/Api/AdminConsole/AddAccount";
     public static final String DELETE_ACCOUNT = "/Api/AdminConsole/DeleteAccount";
-    public static final String QUERY_ALL_ACCOUNTLIST = "/Api/AdminConsole/QueryAllAccountList";
+    public static final String QUERY_ALL_ACCOUNT_LIST = "/Api/AdminConsole/QueryAllAccountList";
 }

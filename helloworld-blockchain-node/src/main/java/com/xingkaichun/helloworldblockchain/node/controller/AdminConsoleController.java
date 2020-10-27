@@ -350,7 +350,7 @@ public class AdminConsoleController {
     }
 
     @ResponseBody
-    @RequestMapping(value = AdminConsoleApiRoute.QUERY_ALL_ACCOUNTLIST,method={RequestMethod.GET,RequestMethod.POST})
+    @RequestMapping(value = AdminConsoleApiRoute.QUERY_ALL_ACCOUNT_LIST,method={RequestMethod.GET,RequestMethod.POST})
     public ServiceResult<QueryAllAccountListResponse> queryAllAccountList(@RequestBody QueryAllAccountListRequest request){
         try {
             List<Account> allAccount = getBlockChainCore().getWallet().queryAllAccount();

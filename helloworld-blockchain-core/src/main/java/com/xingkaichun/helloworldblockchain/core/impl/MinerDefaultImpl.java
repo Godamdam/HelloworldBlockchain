@@ -49,7 +49,7 @@ public class MinerDefaultImpl extends Miner {
                 continue;
             }
             Account minerAccount = wallet.createAccount();
-            Block block = obtainMiningBlock(blockChainDataBase,minerAccount);
+            Block block = obtainMiningBlock(minerAccount);
             //随机nonce
             long nonce = new Random(Long.MAX_VALUE).nextLong();
             long startTimestamp = System.currentTimeMillis();
@@ -70,7 +70,7 @@ public class MinerDefaultImpl extends Miner {
                     //将矿放入区块链
                     boolean isAddBlockToBlockChainSuccess = blockChainDataBase.addBlock(block);
                     if(!isAddBlockToBlockChainSuccess){
-                        logger.info("挖矿成功，但是放入区块链失败。");
+                        logger.error("挖矿成功，但是放入区块链失败。请检查异常。");
                         continue;
                     }
                     //将账户放入钱包
@@ -100,7 +100,7 @@ public class MinerDefaultImpl extends Miner {
     /**
      * 获取挖矿中的区块对象
      */
-    private Block obtainMiningBlock(BlockChainDataBase blockChainDataBase, Account minerAccount) {
+    private Block obtainMiningBlock(Account minerAccount) {
         List<TransactionDTO> forMineBlockTransactionDtoList = minerTransactionDtoDataBase.selectTransactionDtoList(1,10000);
         List<Transaction> forMineBlockTransactionList = new ArrayList<>();
         if(forMineBlockTransactionDtoList != null){
@@ -115,19 +115,19 @@ public class MinerDefaultImpl extends Miner {
                 }
             }
         }
-        removeExceptionTransaction_PointOfBlockView(blockChainDataBase,forMineBlockTransactionList);
-        Block nextMineBlock = buildNextMineBlock(blockChainDataBase,forMineBlockTransactionList,minerAccount);
+        removeExceptionTransaction_PointOfBlockView(forMineBlockTransactionList);
+        Block nextMineBlock = buildNextMineBlock(forMineBlockTransactionList,minerAccount);
         return nextMineBlock;
     }
 
     /**
      * 打包处理过程: 将异常的交易丢弃掉【站在区块的角度校验交易】
      */
-    public void removeExceptionTransaction_PointOfBlockView(BlockChainDataBase blockChainDataBase,List<Transaction> packingTransactionList) {
+    public void removeExceptionTransaction_PointOfBlockView(List<Transaction> packingTransactionList) {
         if(packingTransactionList==null || packingTransactionList.size()==0){
             return;
         }
-        removeExceptionTransaction_PointOfTransactionView(blockChainDataBase,packingTransactionList);
+        removeExceptionTransaction_PointOfTransactionView(packingTransactionList);
 
         Set<String> idSet = new HashSet<>();
         Iterator<Transaction> iterator = packingTransactionList.iterator();
@@ -156,7 +156,7 @@ public class MinerDefaultImpl extends Miner {
     /**
      * 打包处理过程: 将异常的交易丢弃掉【站在单笔交易的角度校验交易】
      */
-    private void removeExceptionTransaction_PointOfTransactionView(BlockChainDataBase blockChainDataBase,List<Transaction> transactionList) {
+    private void removeExceptionTransaction_PointOfTransactionView(List<Transaction> transactionList) {
         if(transactionList==null || transactionList.size()==0){
             return;
         }
@@ -172,8 +172,10 @@ public class MinerDefaultImpl extends Miner {
         }
     }
 
-    @Override
-    public Transaction buildMineAwardTransaction(BlockChainDataBase blockChainDataBase, Account minerAccount, Block block) {
+    /**
+     * 构建区块的挖矿奖励交易，这里可以实现挖矿奖励的分配。
+     */
+    private Transaction buildMineAwardTransaction(Account minerAccount, Block block) {
         String address = minerAccount.getAddress();
 
         Transaction transaction = new Transaction();
@@ -194,7 +196,7 @@ public class MinerDefaultImpl extends Miner {
     /**
      * 构建挖矿区块
      */
-    public Block buildNextMineBlock(BlockChainDataBase blockChainDataBase, List<Transaction> packingTransactionList, Account minerAcount) {
+    public Block buildNextMineBlock(List<Transaction> packingTransactionList, Account minerAcount) {
         long timestamp = System.currentTimeMillis();
 
         Block tailBlock = blockChainDataBase.queryTailBlock();
@@ -212,7 +214,7 @@ public class MinerDefaultImpl extends Miner {
         nonNonceBlock.setTransactions(packingTransactionList);
 
         //创建挖矿奖励交易
-        Transaction mineAwardTransaction =  buildMineAwardTransaction(blockChainDataBase,minerAcount,nonNonceBlock);
+        Transaction mineAwardTransaction =  buildMineAwardTransaction(minerAcount,nonNonceBlock);
         packingTransactionList.add(0,mineAwardTransaction);
 
 
