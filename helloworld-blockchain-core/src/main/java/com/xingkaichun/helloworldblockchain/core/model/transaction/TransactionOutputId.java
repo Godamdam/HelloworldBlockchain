@@ -12,6 +12,7 @@ public class TransactionOutputId implements Serializable {
      * 交易输出序列号
      * 冗余
      * 在这个交易中的的排序号
+     * TODO index
      */
     private long transactionOutputSequence;
 

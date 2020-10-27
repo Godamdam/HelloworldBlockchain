@@ -4,11 +4,7 @@ import com.google.common.base.Strings;
 import com.xingkaichun.helloworldblockchain.core.BlockChainCore;
 import com.xingkaichun.helloworldblockchain.core.model.Block;
 import com.xingkaichun.helloworldblockchain.core.model.pay.Recipient;
-import com.xingkaichun.helloworldblockchain.core.model.script.ScriptLock;
-import com.xingkaichun.helloworldblockchain.core.model.transaction.Transaction;
-import com.xingkaichun.helloworldblockchain.core.model.transaction.TransactionInput;
-import com.xingkaichun.helloworldblockchain.core.model.transaction.TransactionOutput;
-import com.xingkaichun.helloworldblockchain.core.model.transaction.TransactionOutputId;
+import com.xingkaichun.helloworldblockchain.core.model.transaction.*;
 import com.xingkaichun.helloworldblockchain.core.tools.BlockTool;
 import com.xingkaichun.helloworldblockchain.core.tools.ScriptTool;
 import com.xingkaichun.helloworldblockchain.core.tools.TransactionTool;
@@ -26,6 +22,8 @@ import com.xingkaichun.helloworldblockchain.node.dto.blockchainbrowser.block.*;
 import com.xingkaichun.helloworldblockchain.node.dto.blockchainbrowser.request.*;
 import com.xingkaichun.helloworldblockchain.node.dto.blockchainbrowser.response.*;
 import com.xingkaichun.helloworldblockchain.node.dto.blockchainbrowser.transaction.*;
+import com.xingkaichun.helloworldblockchain.node.service.BlockChainBrowserService;
+import com.xingkaichun.helloworldblockchain.node.util.BlockChainBrowserControllerModel2Dto;
 import com.xingkaichun.helloworldblockchain.node.util.DateUtil;
 import com.xingkaichun.helloworldblockchain.setting.GlobalSetting;
 import org.slf4j.Logger;
@@ -53,7 +51,8 @@ public class BlockChainBrowserController {
 
     @Autowired
     private NetBlockchainCore netBlockchainCore;
-
+    @Autowired
+    private BlockChainBrowserService blockChainBrowserService;
 
    /**
      * 生成账户(公钥、私钥、地址)
@@ -240,24 +239,12 @@ public class BlockChainBrowserController {
             PageCondition pageCondition = request.getPageCondition();
             long from = pageCondition.getFrom() == null ? 0L : pageCondition.getFrom();
             long size = pageCondition.getSize() == null ? 10L : pageCondition.getSize();
-            List<TransactionOutput> utxoList = getBlockChainCore().queryUtxoListByAddress(request.getAddress(),from,size);
-            List<QueryUtxosByAddressResponse.TransactionOutputDto> utxoDtoList = new ArrayList<>();
-            if(utxoList != null){
-                for(TransactionOutput transactionOutput:utxoList){
-                    QueryUtxosByAddressResponse.TransactionOutputDto transactionOutputDto = new QueryUtxosByAddressResponse.TransactionOutputDto();
-                    transactionOutputDto.setBlockHeight(transactionOutput.getBlockHeight());
-                    transactionOutputDto.setTransactionHash(transactionOutput.getTransactionHash());
-                    transactionOutputDto.setValue(transactionOutput.getValue());
-                    transactionOutputDto.setScriptLock(ScriptTool.toString(transactionOutput.getScriptLock()));
-                    utxoDtoList.add(transactionOutputDto);
-                }
-            }
-
+            List<QueryTxoByTransactionOutputIdResponse.TransactionOutputDetailDto> transactionOutputDetailDtoList = blockChainBrowserService.queryUtxosByAddress(request.getAddress(),from,size);
             QueryUtxosByAddressResponse response = new QueryUtxosByAddressResponse();
-            response.setUtxos(utxoDtoList);
-            return ServiceResult.createSuccessServiceResult("根据地址获取未花费交易输出成功",response);
+            response.setTransactionOutputDetailDtoList(transactionOutputDetailDtoList);
+            return ServiceResult.createSuccessServiceResult("[查询交易输出]成功",response);
         } catch (Exception e){
-            String message = "根据地址获取未花费交易输出失败";
+            String message = "[查询交易输出]失败";
             logger.error(message,e);
             return ServiceResult.createFailServiceResult(message);
         }
@@ -272,41 +259,34 @@ public class BlockChainBrowserController {
             PageCondition pageCondition = request.getPageCondition();
             long from = pageCondition.getFrom() == null ? 0L : pageCondition.getFrom();
             long size = pageCondition.getSize() == null ? 10L : pageCondition.getSize();
-            List<TransactionOutput> txoList = getBlockChainCore().queryTxoListByAddress(request.getAddress(),from,size);
-            if(txoList == null){
-                return ServiceResult.createFailServiceResult(String.format("地址[%s]没有对应的交易输出列表。",request.getAddress()));
-            }
-            List<QueryTxosByAddressResponse.TransactionOutputDto> txoDtoList = new ArrayList<>();
-            if(txoList != null){
-                for(TransactionOutput transactionOutput:txoList){
-                    QueryTxosByAddressResponse.TransactionOutputDto transactionOutputDto = new QueryTxosByAddressResponse.TransactionOutputDto();
-                    transactionOutputDto.setBlockHeight(transactionOutput.getBlockHeight());
-                    transactionOutputDto.setTransactionHash(transactionOutput.getTransactionHash());
-                    transactionOutputDto.setValue(transactionOutput.getValue());
-                    transactionOutputDto.setScriptLock(ScriptTool.toString(transactionOutput.getScriptLock()));
-
-                    TransactionOutputId transactionOutputId = new TransactionOutputId();
-                    transactionOutputId.setTransactionHash(transactionOutput.getTransactionHash());
-                    transactionOutputId.setTransactionOutputSequence(transactionOutput.getTransactionOutputSequence());
-                    TransactionOutput transactionOutputTemp = getBlockChainCore().getBlockChainDataBase().queryUnspendTransactionOutputByTransactionOutputId(transactionOutputId);
-                    transactionOutputDto.setSpend(transactionOutputTemp==null);
-                    if(transactionOutputTemp==null){
-                        String destinationTransactionHash = getBlockChainCore().getBlockChainDataBase().queryTransactionHashBySpendTransactionOutputId(transactionOutputId);
-                        transactionOutputDto.setDestinationTransactionHash(destinationTransactionHash);
-                    }
-                    txoDtoList.add(transactionOutputDto);
-                }
-            }
+            List<QueryTxoByTransactionOutputIdResponse.TransactionOutputDetailDto> transactionOutputDetailDtoList = blockChainBrowserService.queryTxosByAddress(request.getAddress(),from,size);
             QueryTxosByAddressResponse response = new QueryTxosByAddressResponse();
-            response.setTxos(txoDtoList);
-            return ServiceResult.createSuccessServiceResult("[根据地址获取交易输出]成功",response);
+            response.setTransactionOutputDetailDtoList(transactionOutputDetailDtoList);
+            return ServiceResult.createSuccessServiceResult("[查询交易输出]成功",response);
         } catch (Exception e){
-            String message = "[根据地址获取交易输出]失败";
+            String message = "[查询交易输出]失败";
             logger.error(message,e);
             return ServiceResult.createFailServiceResult(message);
         }
     }
-
+    /**
+     * 根据交易输出ID获取交易输出
+     */
+    @ResponseBody
+    @RequestMapping(value = BlockChainApiRoute.QUERY_TXO_BY_TRANSACTION_OUTPUT_ID,method={RequestMethod.GET,RequestMethod.POST})
+    public ServiceResult<QueryTxoByTransactionOutputIdResponse> queryTxoByTransactionOutputId(@RequestBody QueryTxoByTransactionOutputIdRequest request){
+        try {
+            TransactionOutputId transactionOutputId = request.getTransactionOutputId();
+            QueryTxoByTransactionOutputIdResponse.TransactionOutputDetailDto transactionOutputDetailDto = blockChainBrowserService.getTransactionOutputDetailDtoByTransactionOutputId(transactionOutputId);
+            QueryTxoByTransactionOutputIdResponse response = new QueryTxoByTransactionOutputIdResponse();
+            response.setTransactionOutputDetailDto(transactionOutputDetailDto);
+            return ServiceResult.createSuccessServiceResult("[查询交易输出]成功",response);
+        } catch (Exception e){
+            String message = "[查询交易输出]失败";
+            logger.error(message,e);
+            return ServiceResult.createFailServiceResult(message);
+        }
+    }
     /**
      * Ping节点
      */

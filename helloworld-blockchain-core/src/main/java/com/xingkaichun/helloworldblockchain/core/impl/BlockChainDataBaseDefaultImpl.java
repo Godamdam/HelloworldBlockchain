@@ -282,8 +282,8 @@ public class BlockChainDataBaseDefaultImpl extends BlockChainDataBase {
     }
 
     @Override
-    public String queryTransactionHashBySpendTransactionOutputId(TransactionOutputId transactionOutputId) {
-        byte[] bytesTransactionHash = LevelDBUtil.get(blockChainDB, BlockChainDataBaseKeyTool.buildSpendTransactionOutputIdToTransactionHashKey(transactionOutputId));
+    public String queryToTransactionHashByTransactionOutputId(TransactionOutputId transactionOutputId) {
+        byte[] bytesTransactionHash = LevelDBUtil.get(blockChainDB, BlockChainDataBaseKeyTool.buildTransactionOutputIdToToTransactionHashKey(transactionOutputId));
         if(bytesTransactionHash == null){
             return null;
         }
@@ -489,9 +489,9 @@ public class BlockChainDataBaseDefaultImpl extends BlockChainDataBase {
                 }
                 List<TransactionInput> inputs = transaction.getInputs();
                 if(inputs != null){
-                    for(TransactionInput txInput:inputs){
+                    for(TransactionInput transactionInput:inputs){
                         //存储未花费交易输出哈希到未花费交易输出的映射
-                        TransactionOutput unspendTransactionOutput = txInput.getUnspendTransactionOutput();
+                        TransactionOutput unspendTransactionOutput = transactionInput.getUnspendTransactionOutput();
                         byte[] unspendTransactionOutputIdToUnspendTransactionOutputKey = BlockChainDataBaseKeyTool.buildUnspendTransactionOutputIdToUnspendTransactionOutputKey(unspendTransactionOutput);
                         if(BlockChainActionEnum.ADD_BLOCK == blockChainActionEnum){
                             writeBatch.delete(unspendTransactionOutputIdToUnspendTransactionOutputKey);
@@ -499,11 +499,11 @@ public class BlockChainDataBaseDefaultImpl extends BlockChainDataBase {
                             writeBatch.put(unspendTransactionOutputIdToUnspendTransactionOutputKey, EncodeDecodeUtil.encode(unspendTransactionOutput));
                         }
 
-                        byte[] spendTransactionOutputIdToTransactionHashKey = BlockChainDataBaseKeyTool.buildSpendTransactionOutputIdToTransactionHashKey(unspendTransactionOutput);
+                        byte[] transactionOutputIdToToTransactionHashKey = BlockChainDataBaseKeyTool.buildTransactionOutputIdToToTransactionHashKey(unspendTransactionOutput);
                         if(BlockChainActionEnum.ADD_BLOCK == blockChainActionEnum){
-                            writeBatch.put(spendTransactionOutputIdToTransactionHashKey,EncodeDecodeUtil.encodeTransactionHash(transaction.getTransactionHash()));
+                            writeBatch.put(transactionOutputIdToToTransactionHashKey,EncodeDecodeUtil.encodeTransactionHash(transaction.getTransactionHash()));
                         } else {
-                            writeBatch.delete(spendTransactionOutputIdToTransactionHashKey);
+                            writeBatch.delete(transactionOutputIdToToTransactionHashKey);
                         }
                     }
                 }

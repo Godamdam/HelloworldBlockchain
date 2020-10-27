@@ -13,6 +13,15 @@ public class BlockChainApiRoute {
     public static final String QUERY_MINING_TRANSACTION_BY_TRANSACTION_HASH = "/Api/BlockChain/QueryMiningTransactionByTransactionHash";
     public static final String QUERY_UTXOS_BY_ADDRESS = "/Api/BlockChain/QueryUtxosByAddress";
     public static final String QUERY_TXOS_BY_ADDRESS = "/Api/BlockChain/QueryTxosByAddress";
+
+    //根据地址，查询[未花费交易输出所在的]交易
+    public static final String QUERY_TRANSACTION_LIST_BY_ADDRESS = "/Api/BlockChain/QueryTxosByAddress";
+    //根据地址，查询[交易输出来源所在的]交易和[交易输出去向所在的]交易
+    public static final String QUERY_TRANSACTION_LIST_BY_ADDRESS2 = "/Api/BlockChain/QueryTxosByAddress";
+
+    //根据交易输出ID，查询[交易输出来源所在的]交易和[交易输出去向所在的]交易
+    public static final String QUERY_TXO_BY_TRANSACTION_OUTPUT_ID = "/Api/BlockChain/QueryTxoByTransactionOutputId";
+
     public static final String PING = "/Api/BlockChain/Ping";
     public static final String QUERY_MINING_TRANSACTION_LIST = "/Api/BlockChain/QueryMiningTransactionList";
 

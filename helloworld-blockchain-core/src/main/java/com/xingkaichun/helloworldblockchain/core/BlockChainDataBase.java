@@ -2,6 +2,7 @@ package com.xingkaichun.helloworldblockchain.core;
 
 import com.xingkaichun.helloworldblockchain.core.model.Block;
 import com.xingkaichun.helloworldblockchain.core.model.transaction.Transaction;
+import com.xingkaichun.helloworldblockchain.core.model.transaction.TransactionInput;
 import com.xingkaichun.helloworldblockchain.core.model.transaction.TransactionOutput;
 import com.xingkaichun.helloworldblockchain.core.model.transaction.TransactionOutputId;
 
@@ -80,7 +81,7 @@ public abstract class BlockChainDataBase {
     /**
      * 根据已花费的交易输出ID查询花费去向所在的交易的哈希
      */
-    public abstract String queryTransactionHashBySpendTransactionOutputId(TransactionOutputId transactionOutputId) ;
+    public abstract String queryToTransactionHashByTransactionOutputId(TransactionOutputId transactionOutputId) ;
     //endregion
 
 
